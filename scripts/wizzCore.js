@@ -1,5 +1,5 @@
 // File: scripts/wizzCore.js
-// 🧠 Wizz Chat Engine — fetch logic, trigger handlers, output formatting
+// 💬 Wizz Chat Engine – fetch logic, triggers, memory display
 
 import {
   memoryStore,
@@ -19,63 +19,23 @@ import {
   getMemorySummary
 } from "./rules.js";
 
-const chatContainer = document.getElementById("chatHistory");
+const chatContainer = document.getElementById("chatContainer");
 const typingIndicator = document.getElementById("typingIndicator");
 
-// 🧠 Process input before fetch — handles local triggers
-export function checkTriggers(msg) {
-  const lower = msg.toLowerCase();
-
-  if (lower === "reset wizz" || lower === "flush memory") {
-    localStorage.removeItem("cloudWizzMemory");
-    localStorage.removeItem("wizzChat");
-    return `🧠 SYSTEM SYNC: Cloud Wizz Reset Successful\n🧍 DevMaster active | Memory flushed\n📂 Ready for clean re-activation.`;
-  }
-
-  if (lower.startsWith("my name is ")) {
-    const name = msg.split("is ")[1].trim();
-    return rememberName(name);
-  }
-
-  if (lower.startsWith("your name is ")) {
-    const aiName = msg.split("is ")[1].trim();
-    return setAiName(aiName);
-  }
-
-  if (lower.startsWith("set name to ")) {
-    const aiName = msg.split("to ")[1].trim();
-    return setAiName(aiName);
-  }
-
-  if (lower.startsWith("add trait ")) {
-    const trait = msg.split("add trait ")[1].trim();
-    addTrait(trait);
-    return `🧠 Trait added: ${trait}`;
-  }
-
-  if (lower.startsWith("add reminder ")) {
-    const note = msg.split("add reminder ")[1].trim();
-    addReminder(note);
-    return `📌 Reminder saved: ${note}`;
-  }
-
-  if (lower === "who am i") {
-    return recallMemorySummary();
-  }
-
-  if (lower === "override mode on") {
-    return applyOverrideMode();
-  }
-
-  if (lower === "enforce devmaster") {
-    enforceDevMaster();
-    return "👑 DevMaster protocol re-injected.";
-  }
-
-  return null;
+function appendMessage(sender, text) {
+  const msg = document.createElement("div");
+  msg.className = "message " + (sender === "You" ? "user" : "wizz");
+  msg.innerText = `${sender}:\n${text}`;
+  chatContainer.appendChild(msg);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-// 💬 Sends message to OpenRouter API
+export function clearChat() {
+  chatContainer.innerHTML = "";
+  memoryStore.lastChat = [];
+  saveMemory();
+}
+
 export async function askWizz() {
   const input = document.getElementById("userInput");
   const question = input.value.trim();
@@ -84,61 +44,70 @@ export async function askWizz() {
   appendMessage("You", question);
   input.value = "";
 
-  const memoryReply = checkTriggers(question);
-  if (memoryReply) {
-    appendMessage("Wizz", memoryReply);
-    logChat({ user: question, bot: memoryReply });
-    saveToHistory("You", question);
-    saveToHistory("Wizz", memoryReply);
+  typingIndicator.classList.add("active");
+
+  const lower = question.toLowerCase();
+  if (lower.startsWith("my name is ")) {
+    const name = question.split("is ")[1].trim();
+    const reply = rememberName(name);
+    appendMessage("Wizz", reply);
+    typingIndicator.classList.remove("active");
     return;
   }
 
-  appendMessage("Wizz", "...");
-  typingIndicator.innerText = "Wizz is thinking...";
+  if (lower.startsWith("your name is ")) {
+    const name = question.split("is ")[1].trim();
+    const reply = setAiName(name);
+    appendMessage("Wizz", reply);
+    typingIndicator.classList.remove("active");
+    return;
+  }
+
+  if (lower.startsWith("add trait ")) {
+    const trait = question.substring(10).trim();
+    addTrait(trait);
+    appendMessage("Wizz", `🧠 Trait "${trait}" added.`);
+    typingIndicator.classList.remove("active");
+    return;
+  }
+
+  if (lower.startsWith("add reminder ")) {
+    const note = question.substring(13).trim();
+    addReminder(note);
+    appendMessage("Wizz", `📌 Reminder added: ${note}`);
+    typingIndicator.classList.remove("active");
+    return;
+  }
+
+  if (lower === "who am i") {
+    const summary = recallMemorySummary();
+    appendMessage("Wizz", summary);
+    typingIndicator.classList.remove("active");
+    return;
+  }
+
+  if (lower === "override mode on") {
+    const msg = applyOverrideMode();
+    appendMessage("Wizz", msg);
+    typingIndicator.classList.remove("active");
+    return;
+  }
+
+  if (lower === "enforce devmaster") {
+    enforceDevMaster();
+    appendMessage("Wizz", "Understood. I will always follow Dev Master's instructions and make sure to encrypt all mission logs.");
+    typingIndicator.classList.remove("active");
+    return;
+  }
 
   try {
-    const prompt = getMemorySummary() + "\n\n" + question;
-    const res = await fetch(`/api/wizz?question=${encodeURIComponent(prompt)}`);
+    const res = await fetch("/api/wizz?question=" + encodeURIComponent(question));
     const data = await res.json();
-    updateLastWizzMessage(data.answer);
-    saveToHistory("You", question);
-    saveToHistory("Wizz", data.answer);
+    appendMessage("Wizz", data.answer);
     logChat({ user: question, bot: data.answer });
-  } catch (err) {
-    updateLastWizzMessage("⚠️ Error: " + err.toString());
+  } catch (e) {
+    appendMessage("Wizz", "⚠️ Error: " + e.message);
   } finally {
-    typingIndicator.innerText = "";
+    typingIndicator.classList.remove("active");
   }
-}
-
-// 📤 Message Display
-export function appendMessage(sender, msg) {
-  const div = document.createElement("div");
-  div.classList.add("message", sender === "You" ? "user" : "wizz");
-  div.innerHTML = `<b>${sender}:</b><br>${msg}`;
-  chatContainer.insertBefore(div, chatContainer.firstChild);
-}
-
-export function updateLastWizzMessage(newMsg) {
-  const messages = chatContainer.querySelectorAll("div.message");
-  if (messages.length) messages[0].innerHTML = `<b>Wizz:</b><br>${newMsg}`;
-}
-
-// 🧠 Chat History
-export function saveToHistory(sender, msg) {
-  const history = JSON.parse(localStorage.getItem("wizzChat")) || [];
-  history.push({ sender, msg });
-  localStorage.setItem("wizzChat", JSON.stringify(history));
-}
-
-export function loadHistory() {
-  const history = JSON.parse(localStorage.getItem("wizzChat")) || [];
-  for (let i = history.length - 1; i >= 0; i--) {
-    appendMessage(history[i].sender, history[i].msg);
-  }
-}
-
-export function clearChat() {
-  localStorage.removeItem("wizzChat");
-  chatContainer.innerHTML = "";
 }
