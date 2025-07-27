@@ -60,29 +60,37 @@
     <button onclick="toggleTheme()">🌓</button>
   </div>
 
-  <!-- ✅ Public Scripts via Absolute Paths -->
-  <script defer src="/scripts/memory.js"></script>
-  <script defer src="/scripts/rules.js"></script>
-  <script defer src="/scripts/wizzCore.js"></script>
+  <!-- ✅ Core Wizz Scripts for Static Hosting -->
+  <script defer src="scripts/memory.js"></script>
+  <script defer src="scripts/rules.js"></script>
+  <script defer src="scripts/wizzCore.js"></script>
 
   <script>
-    function toggleTheme() {
-      const isLight = document.body.classList.toggle("light");
-      localStorage.setItem("wizzTheme", isLight ? "light" : "dark");
-    }
+    window.addEventListener("DOMContentLoaded", () => {
+      function toggleTheme() {
+        const isLight = document.body.classList.toggle("light");
+        localStorage.setItem("wizzTheme", isLight ? "light" : "dark");
+      }
 
-    function applyTheme() {
-      const saved = localStorage.getItem("wizzTheme");
-      if (saved === "light") document.body.classList.add("light");
-    }
+      function applyTheme() {
+        const saved = localStorage.getItem("wizzTheme");
+        if (saved === "light") document.body.classList.add("light");
+      }
 
-    window.clearMemory = () => {
-      localStorage.removeItem("cloudWizzMemory");
-      alert("🧠 Wizz memory cleared.");
-      location.reload();
-    };
+      window.clearMemory = () => {
+        localStorage.removeItem("cloudWizzMemory");
+        alert("🧠 Wizz memory cleared.");
+        location.reload();
+      };
 
-    applyTheme();
+      window.toggleTheme = toggleTheme;
+
+      applyTheme();
+      if (typeof loadMemory === "function") loadMemory();
+      if (typeof enforceDevMaster === "function") enforceDevMaster();
+      if (typeof saveMemory === "function") saveMemory();
+      if (typeof loadHistory === "function") loadHistory();
+    });
   </script>
 </body>
 </html>
