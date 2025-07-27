@@ -60,11 +60,13 @@
     <button onclick="toggleTheme()">🌓</button>
   </div>
 
-  <!-- Core Wizz Scripts -->
-  <script defer src="scripts/memory.js"></script>
-  <script defer src="scripts/rules.js"></script>
-  <script defer src="scripts/wizzCore.js"></script>
-  <script>
+  <!-- ✅ Proper ES Module Loader -->
+  <script type="module">
+    import { loadMemory, saveMemory } from './scripts/memory.js';
+    import { enforceDevMaster } from './scripts/rules.js';
+    import { askWizz, loadHistory, clearChat } from './scripts/wizzCore.js';
+
+    // Theme
     function toggleTheme() {
       const isLight = document.body.classList.toggle("light");
       localStorage.setItem("wizzTheme", isLight ? "light" : "dark");
@@ -75,17 +77,22 @@
       if (saved === "light") document.body.classList.add("light");
     }
 
+    // Hook functions to window for button access
+    window.askWizz = askWizz;
+    window.clearChat = clearChat;
     window.clearMemory = () => {
       localStorage.removeItem("cloudWizzMemory");
       alert("🧠 Wizz memory cleared.");
       location.reload();
     };
+    window.toggleTheme = toggleTheme;
 
+    // Boot Sequence
     applyTheme();
-    loadMemory?.();
-    enforceDevMaster?.();
-    saveMemory?.();
-    loadHistory?.();
+    loadMemory();
+    enforceDevMaster();
+    saveMemory();
+    loadHistory();
   </script>
 </body>
 </html>
