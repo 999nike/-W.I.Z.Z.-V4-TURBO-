@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cloud Wizz v1.2 Dev</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="public/frosty.jpg" />
+  <style>
+    body { background: black; color: #0ff; font-family: Arial; }
+    #chatContainer { height: 80vh; overflow-y: auto; display: flex; flex-direction: column; }
+    .message { padding: 8px 12px; margin: 5px; border-radius: 10px; }
+    .user { background: cyan; color: black; align-self: flex-end; }
+    .wizz { background: #333; color: #0ff; align-self: flex-start; }
+  </style>
+</head>
+<body>
+  <h1>☁️ Wizz Dev v1.2</h1>
+  <div id="chatContainer"></div>
+  <div>
+    <input id="userInput" placeholder="Ask Wizz..." />
+    <button onclick="askWizz()">Send</button>
+  </div>
+  <script src="scripts/memory.js"></script>
+  <script src="scripts/rules.js"></script>
+  <script src="scripts/wizzCore.js"></script>
+</body>
+</html>
