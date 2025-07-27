@@ -7,15 +7,32 @@
   <link rel="icon" href="public/frosty.jpg" />
   <style>
     body { background: black; color: #0ff; font-family: Arial; }
-    #chatContainer { height: 80vh; overflow-y: auto; display: flex; flex-direction: column; }
+    #chatContainer { height: 75vh; overflow-y: auto; display: flex; flex-direction: column; }
     .message { padding: 8px 12px; margin: 5px; border-radius: 10px; }
     .user { background: cyan; color: black; align-self: flex-end; }
     .wizz { background: #333; color: #0ff; align-self: flex-start; }
+
+    #typingIndicator {
+      font-style: italic;
+      font-size: 14px;
+      color: #0ff;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      text-align: center;
+      margin-top: 5px;
+    }
+
+    #typingIndicator.active {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
   <h1>☁️ Wizz Dev v1.2</h1>
+
   <div id="chatContainer"></div>
+  <div id="typingIndicator">Wizz is thinking...</div>
+
   <div>
     <input id="userInput" placeholder="Ask Wizz..." />
     <button onclick="askWizz()">Send</button>
@@ -30,7 +47,6 @@
     import { enforceDevMaster } from "./scripts/rules.js";
     import { askWizz, loadHistory, clearChat } from "./scripts/wizzCore.js";
 
-    // Theme
     function toggleTheme() {
       const isLight = document.body.classList.toggle("light");
       localStorage.setItem("wizzTheme", isLight ? "light" : "dark");
@@ -41,7 +57,6 @@
       if (saved === "light") document.body.classList.add("light");
     }
 
-    // Button Hooks
     window.askWizz = askWizz;
     window.clearChat = clearChat;
     window.clearMemory = () => {
@@ -51,7 +66,6 @@
     };
     window.toggleTheme = toggleTheme;
 
-    // Boot Sequence
     applyTheme();
     loadMemory();
     enforceDevMaster();
