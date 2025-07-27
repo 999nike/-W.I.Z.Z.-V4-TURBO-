@@ -1,39 +1,31 @@
-const fetch = require('node-fetch');
+// File: api/wizz.js
+export default async function handler(req, res) {
+  const { question } = req.query;
 
-module.exports = async (req, res) => {
-  const question = req.query.question || 'Hello Wizz';
-  const apiKey = process.env.OPENROUTER_API_KEY;
-
-  if (!apiKey) {
-    return res.status(500).json({ answer: "Wizz: OPENROUTER_API_KEY not set." });
+  if (!question) {
+    return res.status(400).json({ error: "Missing question parameter." });
   }
 
-  try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://cloud-wizz.vercel.app"
-      },
-      body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
-        messages: [{ role: "user", content: question }],
-        max_tokens: 150,
-        temperature: 0.7
-      })
-    });
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "openai/gpt-4o",  // Change to claude-3-opus, meta-llama-3, etc. if desired
+      messages: [{ role: "user", content: question }],
+      temperature: 0.7
+    })
+  });
 
-    const text = await response.text();
-    try {
-      const data = JSON.parse(text);
-      const reply = data?.choices?.[0]?.message?.content?.trim();
-      return res.status(200).json({ answer: reply || "Wizz: No reply received." });
-    } catch {
-      return res.status(500).json({ answer: "Wizz: Could not parse response:\n" + text });
-    }
-
-  } catch (err) {
-    return res.status(500).json({ answer: "Wizz: Failed to contact OpenRouter." });
+  if (!response.ok) {
+    const errorText = await response.text();
+    return res.status(500).json({ error: "API call failed", details: errorText });
   }
-};
+
+  const data = await response.json();
+  const answer = data.choices?.[0]?.message?.content || "⚠️ No response from model.";
+
+  res.status(200).json({ answer });
+}
