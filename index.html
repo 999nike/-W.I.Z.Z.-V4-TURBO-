@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Cloud Wizz v1.2 Dev</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="public/frosty.jpg" />
+  <link rel="icon" href="/frosty.jpg" />
   <style>
     body { background: black; color: #0ff; font-family: Arial; }
     #chatContainer { height: 75vh; overflow-y: auto; display: flex; flex-direction: column; }
@@ -25,6 +25,25 @@
     #typingIndicator.active {
       opacity: 1;
     }
+
+    body.light {
+      background: #f4f4f4;
+      color: #333;
+    }
+
+    body.light .user {
+      background: #ddd;
+      color: #111;
+    }
+
+    body.light .wizz {
+      background: #eee;
+      color: #333;
+    }
+
+    body.light #typingIndicator {
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -42,11 +61,10 @@
   </div>
 
   <!-- Core Wizz Scripts -->
-  <script type="module">
-    import { loadMemory, saveMemory } from "./scripts/memory.js";
-    import { enforceDevMaster } from "./scripts/rules.js";
-    import { askWizz, loadHistory, clearChat } from "./scripts/wizzCore.js";
-
+  <script src="scripts/memory.js"></script>
+  <script src="scripts/rules.js"></script>
+  <script src="scripts/wizzCore.js"></script>
+  <script>
     function toggleTheme() {
       const isLight = document.body.classList.toggle("light");
       localStorage.setItem("wizzTheme", isLight ? "light" : "dark");
@@ -57,20 +75,17 @@
       if (saved === "light") document.body.classList.add("light");
     }
 
-    window.askWizz = askWizz;
-    window.clearChat = clearChat;
     window.clearMemory = () => {
       localStorage.removeItem("cloudWizzMemory");
       alert("🧠 Wizz memory cleared.");
       location.reload();
     };
-    window.toggleTheme = toggleTheme;
 
     applyTheme();
-    loadMemory();
-    enforceDevMaster();
-    saveMemory();
-    loadHistory();
+    loadMemory?.();
+    enforceDevMaster?.();
+    saveMemory?.();
+    loadHistory?.();
   </script>
 </body>
 </html>
