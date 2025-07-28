@@ -7,9 +7,11 @@ function appendMessage(sender, text) {
   div.classList.add("message", sender === "You" ? "user" : "wizz");
   div.innerHTML = `<b>${sender}:</b> ${text}`;
   chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
 }
 
 async function askWizz() {
+  console.log("🟢 askWizz triggered"); // Debug
   const input = document.getElementById("userInput");
   const msg = input.value.trim();
   if (!msg) return;
@@ -23,16 +25,23 @@ async function askWizz() {
     return;
   }
 
-  document.getElementById("typingIndicator").classList.add("active");
-  const prompt = getMemorySummary() + "\n\n" + msg;
+  const typing = document.getElementById("typingIndicator");
+  typing.classList.add("active");
+
+  const memory = (typeof getMemorySummary === "function") ? getMemorySummary() : "";
+  const prompt = memory + "\n\n" + msg;
+
   try {
     const res = await fetch(`/api/wizz?question=${encodeURIComponent(prompt)}`);
     const data = await res.json();
-    chat.lastChild.innerHTML = `<b>Wizz:</b> ${data.answer}`;
+    console.log("🧠 API response:", data);
+    appendMessage("Wizz", data.answer || "⚠️ No response");
   } catch (err) {
-    chat.lastChild.innerHTML = `<b>Wizz:</b> ⚠️ Error contacting API`;
+    console.error("❌ API fetch failed:", err);
+    appendMessage("Wizz", "⚠️ Error contacting AI server.");
   }
-  document.getElementById("typingIndicator").classList.remove("active");
+
+  typing.classList.remove("active");
 }
 
 function checkTriggers(msg) {
@@ -55,6 +64,11 @@ function checkTriggers(msg) {
   return null;
 }
 
+function clearChat() {
+  localStorage.removeItem("wizzChat");
+  location.reload();
+}
+
 function loadHistory() {
   const raw = localStorage.getItem("wizzChat");
   if (!raw) return;
@@ -62,11 +76,6 @@ function loadHistory() {
   for (const [sender, text] of history) {
     appendMessage(sender, text);
   }
-}
-
-function clearChat() {
-  localStorage.removeItem("wizzChat");
-  location.reload();
 }
 
 // Expose to global
