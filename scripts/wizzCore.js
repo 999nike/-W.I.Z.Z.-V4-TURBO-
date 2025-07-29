@@ -11,7 +11,6 @@ function appendMessage(sender, text) {
 }
 
 async function askWizz() {
-  console.log("🟢 askWizz triggered"); // Debug
   const input = document.getElementById("userInput");
   const msg = input.value.trim();
   if (!msg) return;
@@ -34,11 +33,10 @@ async function askWizz() {
   try {
     const res = await fetch(`/api/wizz?question=${encodeURIComponent(prompt)}`);
     const data = await res.json();
-    console.log("🧠 API response:", data);
-    appendMessage("Wizz", data.answer || "⚠️ No response");
+    appendMessage("Wizz", data.answer || "⚠️ No reply");
   } catch (err) {
-    console.error("❌ API fetch failed:", err);
-    appendMessage("Wizz", "⚠️ Error contacting AI server.");
+    console.warn("❌ API error:", err);
+    appendMessage("Wizz", `🔧 [MOCK] You said: "${msg}". Wizz is thinking...`);
   }
 
   typing.classList.remove("active");
