@@ -1,4 +1,7 @@
-export default async function handler(req, res) {
+
+const fetch = require('node-fetch');
+
+module.exports = async function handler(req, res) {
   const { question } = req.query;
   const key = process.env.OPENROUTER_API_KEY;
 
@@ -30,4 +33,4 @@ export default async function handler(req, res) {
     console.error("Wizz API error:", error);
     res.status(500).json({ answer: "⚠️ Wizz failed to connect to the AI servers." });
   }
-}
+};
